@@ -1,0 +1,65 @@
+/* page */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f9fc;
+    text-align: center;
+    margin-top: 40px;
+}
+
+/* page title */
+h1 {
+    margin-bottom: 25px;
+    color: #333;
+}
+
+/* table */
+table {
+    margin: 0 auto;
+    border-collapse: collapse;
+    border: 1px solid #999;
+    width: 380px;
+    background-color: #ffffff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.08);
+}
+
+/* header cell */
+th {
+    background-color: #f0f0f0;
+    padding: 12px;
+    font-size: 18px;
+    border-bottom: 1px solid #ccc;
+}
+
+/* normal cells */
+td {
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    text-align: left;
+}
+
+/* inputs and textarea */
+input, textarea {
+    width: 98%;
+    box-sizing: border-box;
+}
+
+/* button */
+button {
+    padding: 6px 14px;
+    margin: 6px 0;
+    background-color: #0078d7;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #005fa8;
+}
+
+/* small helper text under message */
+.message-note {
+    font-size: 11px;
+    color: #555;
+}
