@@ -1,34 +1,59 @@
+/* page */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f7f9fc;
-    text-align: center;
-    margin: 30px;
+  font-family: Arial, sans-serif;
+  background-color: #f7f9fc;
+  text-align: center;
+  margin: 30px;
 }
 
-h1 {
-    color: #333;
-}
+/* title */
+h1 { color: #333; margin-bottom: 20px; }
 
+/* table */
 table {
-    width: 90%;
-    margin: 0 auto;
-    border-collapse: collapse;
-    background-color: white;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  margin: 0 auto;
+  border-collapse: collapse;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-th,
-td {
-    border: 1px solid #ddd;
-    padding: 10px;
+/* cells */
+th, td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+  vertical-align: middle;
 }
 
-th {
-    background-color: #0078d7;
-    color: white;
+th { background-color: #0078d7; color: #fff; }
+
+/* subtle zebra */
+tbody tr:nth-child(odd) { background: #f5f7fb; }
+
+/* thumbnail */
+img { width: 120px; border-radius: 5px; display: block; }
+
+/* iframe — fixed size to avoid layout quirks */
+td iframe {
+  display: block;
+  width: 300px;
+  height: 170px;
+  max-width: 100%;
+  border: none;
 }
 
-img {
-    width: 120px;
-    border-radius: 5px;
+/* Step 13 - header styling */
+.title-box {
+  background-color: lightblue;
+  color: white;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+/* Step 14 - highlight specific table rows */
+.highlight-row {
+  background-color: #d6ebff; /* light blue */
+  color: #003366;            /* darker blue text */
+  font-weight: bold;
 }
