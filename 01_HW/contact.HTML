@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact</title>
+    <!-- step 18: use external CSS file -->
+    <link rel="stylesheet" href="contact.css">
+</head>
+<body>
+
+    <h1>Contact</h1>
+
+    <table>
+        <tr>
+            <th colspan="2">Send a Message</th>
+        </tr>
+        <tr>
+            <td>Name:</td>
+            <td><input type="text"></td>
+        </tr>
+        <tr>
+            <td>Email:</td>
+            <td><input type="text"></td>
+        </tr>
+        <tr>
+            <td>Phone:</td>
+            <td><input type="text"></td>
+        </tr>
+        <tr>
+            <td>Subject:</td>
+            <td><input type="text"></td>
+        </tr>
+
+        <tr>
+            <td rowspan="2">Message:</td>
+            <td><textarea rows="4"></textarea></td>
+        </tr>
+        <tr>
+            <td>
+                <span class="message-note">
+                    Please write your message here.
+                </span>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="2">
+                <button onclick="alert('Message sent!')">Send Message</button>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>
