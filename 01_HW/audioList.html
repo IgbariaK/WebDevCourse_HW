@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio List</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f9fc;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        table {
+            width: 85%;
+            margin: 0 auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #20292f;
+            color: white;
+        }
+
+        img {
+            width: 70px;
+            border-radius: 4px;
+        }
+
+        audio {
+            width: 200px;
+        }
+
+        a {
+            color: #0078d7;
+        }
+
+        a:hover {
+            color: red;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Audio List</h1>
+
+    <table>
+        <tr>
+            <th>Cover</th>
+            <th>Title</th>
+            <th>Artist</th>
+            <th>Year</th>
+            <th>Play</th>
+            <th>Download</th>
+        </tr>
+
+        <!-- Song 1 -->
+        <tr>
+            <td><img src="AudioFiles/imagine.jpg" alt="Imagine cover"></td>
+            <td>Imagine</td>
+            <td>John Lennon</td>
+            <td>1971</td>
+            <td>
+                <audio controls>
+                    <source src="AudioFiles/imagine.mp3" type="audio/mpeg">
+                </audio>
+            </td>
+            <td>
+                <a href="AudioFiles/imagine.mp3" download>Download</a>
+            </td>
+        </tr>
+
+        <!-- Song 2 -->
+        <tr>
+            <td><img src="AudioFiles/bohemian.jpg" alt="Bohemian Rhapsody cover"></td>
+            <td>Bohemian Rhapsody</td>
+            <td>Queen</td>
+            <td>1975</td>
+            <td>
+                <audio controls>
+                    <source src="AudioFiles/bohemian.mp3" type="audio/mpeg">
+                </audio>
+            </td>
+            <td>
+                <a href="AudioFiles/bohemian.mp3" download>Download</a>
+            </td>
+        </tr>
+
+    </table>
+
+</body>
+</html>
