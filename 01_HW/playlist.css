@@ -7,7 +7,17 @@ body {
 }
 
 /* title */
-h1 { color: #333; margin-bottom: 20px; }
+h1 {
+  margin-bottom: 20px;
+}
+
+/* step 13 - header style */
+.title-box {
+  background-color: lightblue;
+  color: white;
+  padding: 10px;
+  border-radius: 6px;
+}
 
 /* table */
 table {
@@ -19,22 +29,39 @@ table {
 }
 
 /* cells */
-th, td {
+th,
+td {
   border: 1px solid #ddd;
   padding: 10px;
   text-align: left;
   vertical-align: middle;
 }
 
-th { background-color: #0078d7; color: #fff; }
+th {
+  background-color: #0078d7;
+  color: white;
+}
 
-/* subtle zebra */
-tbody tr:nth-child(odd) { background: #f5f7fb; }
+/* zebra rows */
+tbody tr:nth-child(odd) {
+  background: #f5f7fb;
+}
 
-/* thumbnail */
-img { width: 120px; border-radius: 5px; display: block; }
+/* step 14 - highlighted row (you used it via DevTools) */
+.highlight-row {
+  background-color: #d6ebff;
+  color: #003366;
+  font-weight: bold;
+}
 
-/* iframe — fixed size to avoid layout quirks */
+/* thumbnails */
+img {
+  width: 120px;
+  border-radius: 5px;
+  display: block;
+}
+
+/* video iframes */
 td iframe {
   display: block;
   width: 300px;
@@ -43,17 +70,13 @@ td iframe {
   border: none;
 }
 
-/* Step 13 - header styling */
-.title-box {
-  background-color: lightblue;
-  color: white;
-  padding: 10px;
-  border-radius: 6px;
+/* step 15 - link styles */
+.song-link {
+  color: #0078d7;         /* normal link color */
+  text-decoration: none;  /* no underline */
+  font-weight: bold;
 }
 
-/* Step 14 - highlight specific table rows */
-.highlight-row {
-  background-color: #d6ebff; /* light blue */
-  color: #003366;            /* darker blue text */
-  font-weight: bold;
+.song-link:hover {
+  color: red;             /* color when hovered (as required) */
 }
