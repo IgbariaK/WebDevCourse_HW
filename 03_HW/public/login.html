@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+
+  <style>
+    body { font-family: Arial, sans-serif; background:#f2f2f2; margin:0; }
+    header { background:#222; color:#fff; padding:15px; }
+    nav a { color:#fff; text-decoration:none; margin-right:14px; font-weight:bold; }
+    .topUser { display:flex; align-items:center; gap:10px; margin-top:10px; }
+    .topUser img { width:44px; height:44px; border-radius:50%; border:2px solid #fff; object-fit:cover; }
+    main { max-width: 700px; margin: 18px auto; padding: 0 16px; }
+    .card { background:#fff; padding:16px; border-radius:10px; box-shadow:0 6px 16px rgba(0,0,0,.08); }
+    label { display:block; margin-top:12px; font-weight:600; }
+    input { width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; margin-top:6px; }
+    button { margin-top:14px; padding:10px 14px; border:0; border-radius:8px; cursor:pointer; background:#2d5bff; color:#fff; font-weight:700; }
+    .msg { margin-top:12px; padding:10px; border-radius:8px; }
+    .error { background:#ffecec; border:1px solid #ffbcbc; color:#8a0000; }
+    .ok { background:#e9fff0; border:1px solid #b7f3c8; color:#056b2c; }
+    .hint { color:#555; font-size:0.9rem; margin-top:8px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="login.html">Login</a>
+    <a href="register.html">Register</a>
+    <a href="search.html">Search</a>
+    <a href="playlists.html">Playlists</a>
+  </nav>
+
+  <!-- Shows after login (from SessionStorage) -->
+  <div id="topUser" class="topUser" style="display:none;">
+    <img id="topUserImg" alt="user" />
+    <div>
+      <div><strong id="topUserName"></strong></div>
+      <div style="font-size:12px; opacity:0.85;">(SessionStorage: currentUser)</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <h1>Login</h1>
+    <div id="message"></div>
+
+    <label for="username">Username</label>
+    <input id="username" type="text" placeholder="Enter username" />
+
+    <label for="password">Password</label>
+    <input id="password" type="password" placeholder="Enter password" />
+
+    <button id="btnLogin">Login</button>
+
+    <div class="hint">
+      If you don’t have an account yet, go to <a href="register.html">Register</a>.
+    </div>
+  </div>
+</main>
+
+<script>
+  function showTopUserFromSession() {
+    const raw = sessionStorage.getItem("currentUser");
+    if (!raw) return;
+
+    try {
+      const u = JSON.parse(raw);
+      if (!u || !u.username) return;
+
+      const top = document.getElementById("topUser");
+      top.style.display = "flex";
+      document.getElementById("topUserName").textContent = u.username;
+      document.getElementById("topUserImg").src = u.imageUrl || "https://via.placeholder.com/80";
+    } catch {
+      // ignore
+    }
+  }
+
+  function showMessage(type, text) {
+    const el = document.getElementById("message");
+    el.innerHTML = `<div class="msg ${type}">${text}</div>`;
+  }
+
+  // Show header user if already logged in (also works when navigating back)
+  showTopUserFromSession();
+
+  document.getElementById("btnLogin").addEventListener("click", async () => {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (!username || !password) {
+      showMessage("error", "Please enter username and password.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showMessage("error", data.error || "Invalid username or password.");
+        return;
+      }
+
+      // Store user in SessionStorage for UI
+      sessionStorage.setItem("currentUser", JSON.stringify(data.user));
+
+      showMessage("ok", "Login successful! Redirecting to search...");
+      setTimeout(() => {
+        window.location.href = "search.html";
+      }, 700);
+
+    } catch (err) {
+      showMessage("error", "Server error. Make sure Node server is running on http://localhost:3000");
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search</title>
+
+  <style>
+    body { font-family: Arial, sans-serif; background:#f2f2f2; margin:0; color:#111; }
+    header { background:#222; color:#fff; padding:15px; }
+    nav a { color:#fff; text-decoration:none; margin-right:14px; font-weight:bold; }
+    .topUser { display:flex; align-items:center; gap:10px; margin-top:10px; }
+    .topUser img { width:46px; height:46px; border-radius:50%; border:2px solid #fff; object-fit:cover; }
+    main { max-width: 980px; margin: 18px auto; padding: 0 16px; }
+    .card { background:#fff; padding:16px; border-radius:12px; box-shadow:0 6px 16px rgba(0,0,0,.08); margin-bottom: 14px; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    input { flex: 1; min-width: 240px; padding: 10px; border-radius: 10px; border: 1px solid #ccc; }
+    button { padding:10px 14px; border:0; border-radius:10px; cursor:pointer; background:#2d5bff; color:#fff; font-weight:700; }
+    button.secondary { background:#e9ecf5; color:#111; border:1px solid #d6d9e0; }
+    .hint { color:#666; font-size: 0.92rem; margin-top:8px; }
+
+    .grid { display: grid; grid-template-columns: repeat(1, 1fr); gap: 12px; }
+    .item { display:flex; gap:12px; border:1px solid #eef0f5; border-radius:12px; padding:12px; background:#fff; }
+    .thumbWrap { position: relative; flex: 0 0 160px; }
+    .thumbWrap img { width:160px; height:90px; object-fit:cover; border-radius:10px; cursor:pointer; }
+    .duration {
+      position:absolute; right:8px; bottom:8px;
+      background: rgba(0,0,0,.75); color:#fff; font-size:12px;
+      padding:3px 7px; border-radius:999px;
+    }
+    .content { flex:1; min-width: 250px; }
+    .title {
+      font-weight:800; margin: 0 0 6px; cursor:pointer;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .meta { color:#444; font-size: 0.95rem; }
+    .meta span { display:inline-block; margin-right:10px; margin-top:4px; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    .badge { display:inline-block; padding:4px 8px; border-radius:999px; background:#eef2ff; color:#2d5bff; font-size:12px; font-weight:800; }
+
+    /* Modal */
+    .modalOverlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.55);
+      display:none; align-items:center; justify-content:center; padding: 16px; z-index: 9999;
+    }
+    .modal {
+      width: min(860px, 100%);
+      background: #fff; border-radius: 14px; padding: 14px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.3);
+    }
+    .modalHeader { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .modalHeader h2 { margin:0; font-size: 18px; }
+    .closeBtn { background:#111; color:#fff; border:0; border-radius:10px; padding:8px 10px; cursor:pointer; }
+    .modalBody { margin-top: 12px; }
+    iframe { width: 100%; aspect-ratio: 16/9; border:0; border-radius: 12px; }
+
+    /* Add to playlist modal form */
+    label { display:block; font-weight:700; margin-top: 12px; }
+    select { width:100%; padding:10px; border-radius:10px; border:1px solid #ccc; }
+    .radioRow { display:flex; gap:10px; flex-wrap:wrap; margin-top: 8px; }
+    .radioBox { border:1px solid #ddd; border-radius:12px; padding:10px; flex:1; min-width: 260px; }
+    .radioBox input { width:auto; }
+    .radioBox .small { color:#666; font-size: 0.92rem; margin-top:6px; }
+
+    /* Toast */
+    .toast {
+      position: fixed; left: 50%; transform: translateX(-50%);
+      bottom: 18px; background: #111; color:#fff;
+      padding: 12px 14px; border-radius: 12px;
+      display:none; align-items:center; gap:10px; z-index: 10000;
+      box-shadow: 0 10px 30px rgba(0,0,0,.3);
+      max-width: calc(100% - 24px);
+    }
+    .toast a { color:#8bb3ff; font-weight:800; text-decoration:none; }
+    .toast button { background:#2d5bff; padding:8px 10px; border-radius:10px; }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="login.html">Login</a>
+    <a href="register.html">Register</a>
+    <a href="search.html">Search</a>
+    <a href="playlists.html">Playlists</a>
+  </nav>
+
+  <div id="topUser" class="topUser" style="display:none;">
+    <img id="topUserImg" alt="user" />
+    <div>
+      <div><strong id="welcomeText"></strong></div>
+      <div style="font-size:12px; opacity:0.85;">Welcome Message</div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <h1>Search YouTube</h1>
+
+    <div class="row">
+      <input id="q" type="text" placeholder="Type song or artist name..." />
+      <button id="btnSearch">Search</button>
+      <button id="btnChangeKey" class="secondary" title="Change saved YouTube API key">API Key</button>
+    </div>
+
+    <div class="hint">
+      Search is saved in the URL querystring (<code>?q=</code>). Refresh/back keeps the same search.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Results</h2>
+    <div id="status" class="hint">No search yet.</div>
+    <div id="results" class="grid"></div>
+  </div>
+</main>
+
+<!-- Player Modal -->
+<div id="playerOverlay" class="modalOverlay">
+  <div class="modal">
+    <div class="modalHeader">
+      <h2 id="playerTitle">Player</h2>
+      <button class="closeBtn" id="closePlayer">Close</button>
+    </div>
+    <div class="modalBody">
+      <iframe id="playerFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    </div>
+  </div>
+</div>
+
+<!-- Add to Playlist Modal -->
+<div id="addOverlay" class="modalOverlay">
+  <div class="modal">
+    <div class="modalHeader">
+      <h2 id="addTitle">Add to Playlists</h2>
+      <button class="closeBtn" id="closeAdd">Close</button>
+    </div>
+    <div class="modalBody">
+      <div class="radioRow">
+        <div class="radioBox">
+          <label>
+            <input type="radio" name="mode" value="existing" checked />
+            Option 1: Choose existing playlist
+          </label>
+          <div class="small">Pick from your playlists (dropdown)</div>
+          <select id="existingSelect"></select>
+        </div>
+
+        <div class="radioBox">
+          <label>
+            <input type="radio" name="mode" value="new" />
+            Option 2: Create new playlist
+          </label>
+          <div class="small">Type a new playlist name</div>
+          <input id="newPlaylistName" type="text" placeholder="New playlist name" />
+        </div>
+      </div>
+
+      <button id="btnAddNow" style="margin-top:14px;">Add</button>
+      <div id="addMsg" class="hint"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast">
+  <div id="toastText"></div>
+  <a href="playlists.html" id="toastLink">Go to playlists</a>
+  <button id="toastClose">OK</button>
+</div>
+
+<script>
+  // ---------- Auth guard + welcome ----------
+  function getCurrentUser() {
+    const raw = sessionStorage.getItem("currentUser");
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch { return null; }
+  }
+
+  const currentUser = getCurrentUser();
+  if (!currentUser) {
+    window.location.href = "login.html";
+  } else {
+    document.getElementById("topUser").style.display = "flex";
+    document.getElementById("welcomeText").textContent = `שלום ${currentUser.username}`;
+    document.getElementById("topUserImg").src = currentUser.imageUrl || "https://via.placeholder.com/80";
+  }
+
+  // ---------- YouTube API key handling (no placeholders) ----------
+  function getApiKey() {
+    return localStorage.getItem("yt_api_key") || "";
+  }
+  function requireApiKey() {
+    let key = getApiKey();
+    if (!key) {
+      key = prompt("Enter your YouTube Data API key (will be saved in localStorage):");
+      if (key && key.trim()) {
+        localStorage.setItem("yt_api_key", key.trim());
+      }
+    }
+    return getApiKey();
+  }
+
+  document.getElementById("btnChangeKey").addEventListener("click", () => {
+    const key = prompt("Set / change YouTube Data API key:", getApiKey());
+    if (key !== null) localStorage.setItem("yt_api_key", key.trim());
+    alert("Saved.");
+  });
+
+  // ---------- Querystring helpers ----------
+  function getQueryParam(name) {
+    const u = new URL(window.location.href);
+    return u.searchParams.get(name) || "";
+  }
+  function setQueryParam(name, value) {
+    const u = new URL(window.location.href);
+    if (value) u.searchParams.set(name, value);
+    else u.searchParams.delete(name);
+    window.history.replaceState({}, "", u.toString());
+  }
+
+  // ---------- Playlist storage (per user) ----------
+  function playlistsKey() {
+    return `playlists_${currentUser.username}`;
+  }
+
+  function getPlaylists() {
+    try {
+      return JSON.parse(localStorage.getItem(playlistsKey()) || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  function setPlaylists(pl) {
+    localStorage.setItem(playlistsKey(), JSON.stringify(pl));
+  }
+
+  function videoExistsInAnyPlaylist(videoId) {
+    const pls = getPlaylists();
+    return pls.some(p => (p.videos || []).some(v => v.videoId === videoId));
+  }
+
+  // ---------- ISO8601 duration parser ----------
+  function formatDuration(iso) {
+    // Example: PT1H2M3S, PT3M, PT45S
+    const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!m) return "";
+    const h = parseInt(m[1] || "0", 10);
+    const min = parseInt(m[2] || "0", 10);
+    const s = parseInt(m[3] || "0", 10);
+    const pad = (n) => String(n).padStart(2, "0");
+    if (h > 0) return `${h}:${pad(min)}:${pad(s)}`;
+    return `${min}:${pad(s)}`;
+  }
+
+  function formatViews(n) {
+    const num = Number(n || 0);
+    return num.toLocaleString();
+  }
+
+  // ---------- Modals ----------
+  const playerOverlay = document.getElementById("playerOverlay");
+  const playerFrame = document.getElementById("playerFrame");
+  const playerTitle = document.getElementById("playerTitle");
+
+  function openPlayer(videoId, title) {
+    playerTitle.textContent = title || "Player";
+    playerFrame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+    playerOverlay.style.display = "flex";
+  }
+  function closePlayer() {
+    playerOverlay.style.display = "none";
+    playerFrame.src = "";
+  }
+  document.getElementById("closePlayer").addEventListener("click", closePlayer);
+  playerOverlay.addEventListener("click", (e) => { if (e.target === playerOverlay) closePlayer(); });
+
+  // Add-to-playlist modal
+  const addOverlay = document.getElementById("addOverlay");
+  const existingSelect = document.getElementById("existingSelect");
+  const newPlaylistName = document.getElementById("newPlaylistName");
+  const addMsg = document.getElementById("addMsg");
+  let pendingVideo = null;
+
+  function openAddModal(video) {
+    pendingVideo = video;
+    addMsg.textContent = "";
+    document.getElementById("addTitle").textContent = `Add: ${video.title}`;
+
+    // Fill dropdown
+    const pls = getPlaylists();
+    existingSelect.innerHTML = "";
+    if (pls.length === 0) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "No playlists yet (create new)";
+      existingSelect.appendChild(opt);
+    } else {
+      pls.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.name;
+        opt.textContent = p.name;
+        existingSelect.appendChild(opt);
+      });
+    }
+
+    // default mode
+    document.querySelector('input[name="mode"][value="existing"]').checked = true;
+    addOverlay.style.display = "flex";
+  }
+
+  function closeAddModal() {
+    addOverlay.style.display = "none";
+    pendingVideo = null;
+    newPlaylistName.value = "";
+  }
+  document.getElementById("closeAdd").addEventListener("click", closeAddModal);
+  addOverlay.addEventListener("click", (e) => { if (e.target === addOverlay) closeAddModal(); });
+
+  document.getElementById("btnAddNow").addEventListener("click", () => {
+    if (!pendingVideo) return;
+
+    const mode = document.querySelector('input[name="mode"]:checked').value;
+    let playlistName = "";
+
+    if (mode === "existing") {
+      playlistName = existingSelect.value;
+      if (!playlistName) {
+        addMsg.textContent = "No existing playlists. Choose 'Create new playlist'.";
+        return;
+      }
+    } else {
+      playlistName = newPlaylistName.value.trim();
+      if (!playlistName) {
+        addMsg.textContent = "Please enter a new playlist name.";
+        return;
+      }
+    }
+
+    let pls = getPlaylists();
+    let p = pls.find(x => x.name === playlistName);
+
+    if (!p) {
+      p = { name: playlistName, videos: [] };
+      pls.push(p);
+    }
+
+    const alreadyInThis = p.videos.some(v => v.videoId === pendingVideo.videoId);
+    if (!alreadyInThis) {
+      p.videos.push(pendingVideo);
+      setPlaylists(pls);
+    }
+
+    closeAddModal();
+    renderResults(lastResults); // update UI (✓ and button)
+
+    showToast(`Added to "${playlistName}".`);
+  });
+
+  // ---------- Toast ----------
+  const toast = document.getElementById("toast");
+  const toastText = document.getElementById("toastText");
+  function showToast(text) {
+    toastText.textContent = text;
+    toast.style.display = "flex";
+    clearTimeout(window.__toastTimer);
+    window.__toastTimer = setTimeout(() => toast.style.display = "none", 4500);
+  }
+  document.getElementById("toastClose").addEventListener("click", () => toast.style.display = "none");
+
+  // ---------- YouTube search ----------
+  const statusEl = document.getElementById("status");
+  const resultsEl = document.getElementById("results");
+  let lastResults = [];
+
+  async function youtubeSearch(query) {
+    const key = requireApiKey();
+    if (!key) {
+      statusEl.textContent = "Missing YouTube API key.";
+      return [];
+    }
+
+    statusEl.textContent = "Searching...";
+    resultsEl.innerHTML = "";
+
+    const q = encodeURIComponent(query);
+    const searchUrl =
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&q=${q}&key=${encodeURIComponent(key)}`;
+
+    const sRes = await fetch(searchUrl);
+    const sJson = await sRes.json();
+
+    if (!sRes.ok) {
+      const msg = (sJson && sJson.error && sJson.error.message) ? sJson.error.message : "Search failed";
+      throw new Error(msg);
+    }
+
+    const items = (sJson.items || []).map(it => ({
+      videoId: it.id.videoId,
+      title: it.snippet.title,
+      channelTitle: it.snippet.channelTitle,
+      publishedAt: it.snippet.publishedAt,
+      thumbnail: it.snippet.thumbnails && (it.snippet.thumbnails.medium?.url || it.snippet.thumbnails.default?.url) || ""
+    }));
+
+    // fetch details (views + duration)
+    const ids = items.map(x => x.videoId).join(",");
+    const detailsUrl =
+      `https://www.googleapis.com/youtube/v3/videos?part=statistics,contentDetails&id=${encodeURIComponent(ids)}&key=${encodeURIComponent(key)}`;
+
+    const dRes = await fetch(detailsUrl);
+    const dJson = await dRes.json();
+
+    if (!dRes.ok) {
+      const msg = (dJson && dJson.error && dJson.error.message) ? dJson.error.message : "Details failed";
+      throw new Error(msg);
+    }
+
+    const detailsMap = {};
+    (dJson.items || []).forEach(v => {
+      detailsMap[v.id] = {
+        viewCount: v.statistics?.viewCount || "0",
+        duration: v.contentDetails?.duration || "PT0S"
+      };
+    });
+
+    // merge
+    return items.map(x => ({
+      ...x,
+      views: detailsMap[x.videoId]?.viewCount || "0",
+      duration: detailsMap[x.videoId]?.duration || "PT0S"
+    }));
+  }
+
+  function renderResults(list) {
+    lastResults = list;
+
+    if (!list || list.length === 0) {
+      statusEl.textContent = "No results.";
+      resultsEl.innerHTML = "";
+      return;
+    }
+
+    statusEl.textContent = `Showing ${list.length} results.`;
+    resultsEl.innerHTML = "";
+
+    list.forEach(v => {
+      const exists = videoExistsInAnyPlaylist(v.videoId);
+
+      const div = document.createElement("div");
+      div.className = "item";
+
+      div.innerHTML = `
+        <div class="thumbWrap">
+          <img src="${v.thumbnail}" alt="thumb" />
+          <div class="duration">${formatDuration(v.duration)}</div>
+        </div>
+
+        <div class="content">
+          <div class="title" title="${escapeHtml(v.title)}">${escapeHtml(v.title)}</div>
+
+          <div class="meta">
+            <span><strong>Channel:</strong> ${escapeHtml(v.channelTitle)}</span>
+            <span><strong>Views:</strong> ${formatViews(v.views)}</span>
+          </div>
+
+          <div class="actions">
+            <button class="btnPlay">Play</button>
+            <button class="btnAdd ${exists ? "secondary" : ""}">
+              ${exists ? "✓ In playlists" : "Add to playlists"}
+            </button>
+            ${exists ? `<span class="badge">✓ Added</span>` : ""}
+          </div>
+        </div>
+      `;
+
+      // click title/thumb => player modal
+      div.querySelector(".thumbWrap img").addEventListener("click", () => openPlayer(v.videoId, v.title));
+      div.querySelector(".title").addEventListener("click", () => openPlayer(v.videoId, v.title));
+      div.querySelector(".btnPlay").addEventListener("click", () => openPlayer(v.videoId, v.title));
+
+      // add button => open add modal
+      div.querySelector(".btnAdd").addEventListener("click", () => {
+        openAddModal({
+          videoId: v.videoId,
+          title: v.title,
+          channelTitle: v.channelTitle,
+          thumbnail: v.thumbnail,
+          views: v.views,
+          duration: v.duration,
+          publishedAt: v.publishedAt
+        });
+      });
+
+      resultsEl.appendChild(div);
+    });
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  async function doSearch(query) {
+    const q = query.trim();
+    if (!q) {
+      statusEl.textContent = "Please type something to search.";
+      resultsEl.innerHTML = "";
+      return;
+    }
+
+    setQueryParam("q", q);
+
+    try {
+      const list = await youtubeSearch(q);
+      // If user came back with querystring, show the same results again
+      renderResults(list);
+    } catch (e) {
+      statusEl.textContent = "Error: " + e.message;
+      resultsEl.innerHTML = "";
+    }
+  }
+
+  // Search button and Enter key
+  document.getElementById("btnSearch").addEventListener("click", () => doSearch(document.getElementById("q").value));
+  document.getElementById("q").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") doSearch(document.getElementById("q").value);
+  });
+
+  // On load: read querystring and auto search
+  const qFromUrl = getQueryParam("q");
+  if (qFromUrl) {
+    document.getElementById("q").value = qFromUrl;
+    doSearch(qFromUrl);
+  }
+</script>
+
+</body>
+</html>

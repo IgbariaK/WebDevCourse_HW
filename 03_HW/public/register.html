@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register</title>
+
+  <style>
+    body { font-family: Arial, sans-serif; background:#f2f2f2; margin:0; }
+    header { background:#222; color:#fff; padding:15px; }
+    nav a { color:#fff; text-decoration:none; margin-right:14px; font-weight:bold; }
+    main { max-width: 700px; margin: 18px auto; padding: 0 16px; }
+    .card { background:#fff; padding:16px; border-radius:10px; box-shadow:0 6px 16px rgba(0,0,0,.08); }
+    label { display:block; margin-top:12px; font-weight:600; }
+    input { width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; margin-top:6px; }
+    button { margin-top:14px; padding:10px 14px; border:0; border-radius:8px; cursor:pointer; background:#2d5bff; color:#fff; font-weight:700; }
+    .msg { margin-top:12px; padding:10px; border-radius:8px; }
+    .error { background:#ffecec; border:1px solid #ffbcbc; color:#8a0000; }
+    .ok { background:#e9fff0; border:1px solid #b7f3c8; color:#056b2c; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; }
+    .row > div { flex:1; min-width: 250px; }
+    img { max-width: 120px; border-radius: 10px; border:1px solid #ddd; margin-top:10px; }
+    .hint { color:#555; font-size: 0.9rem; margin-top:6px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="login.html">Login</a>
+    <a href="register.html">Register</a>
+    <a href="search.html">Search</a>
+    <a href="playlists.html">Playlists</a>
+  </nav>
+</header>
+
+<main>
+  <div class="card">
+    <h1>Register</h1>
+
+    <div id="message"></div>
+
+    <div class="row">
+      <div>
+        <label for="username">Username *</label>
+        <input id="username" type="text" placeholder="Enter username" />
+      </div>
+
+      <div>
+        <label for="email">Email *</label>
+        <input id="email" type="email" placeholder="name@example.com" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="firstName">First Name *</label>
+        <input id="firstName" type="text" placeholder="First name" />
+      </div>
+
+      <div>
+        <label for="lastName">Last Name *</label>
+        <input id="lastName" type="text" placeholder="Last name" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="password">Password *</label>
+        <input id="password" type="password" placeholder="Min 6 chars, at least 1 letter + 1 number" />
+        <div class="hint">Must be at least 6 characters and include 1 letter and 1 number.</div>
+      </div>
+
+      <div>
+        <label for="confirmPassword">Confirm Password *</label>
+        <input id="confirmPassword" type="password" placeholder="Repeat password" />
+      </div>
+    </div>
+
+    <label for="imageUrl">Image URL *</label>
+    <input id="imageUrl" type="url" placeholder="https://example.com/image.jpg" />
+    <img id="preview" alt="preview" style="display:none;" />
+
+    <button id="btnRegister">Create Account</button>
+  </div>
+</main>
+
+<script>
+  function showMessage(type, text) {
+    const el = document.getElementById("message");
+    el.innerHTML = `<div class="msg ${type}">${text}</div>`;
+  }
+
+  function passwordValid(pw) {
+    const hasLetter = /[A-Za-z]/.test(pw);
+    const hasNumber = /[0-9]/.test(pw);
+    return pw.length >= 6 && hasLetter && hasNumber;
+  }
+
+  // Image preview
+  document.getElementById("imageUrl").addEventListener("input", () => {
+    const url = document.getElementById("imageUrl").value.trim();
+    const img = document.getElementById("preview");
+    if (!url) { img.style.display = "none"; return; }
+    img.src = url;
+    img.style.display = "block";
+    img.onerror = () => { img.style.display = "none"; };
+  });
+
+  document.getElementById("btnRegister").addEventListener("click", async () => {
+    const username = document.getElementById("username").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const firstName = document.getElementById("firstName").value.trim();
+    const lastName = document.getElementById("lastName").value.trim();
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+    const imageUrl = document.getElementById("imageUrl").value.trim();
+
+    if (!username || !email || !firstName || !lastName || !password || !confirmPassword || !imageUrl) {
+      showMessage("error", "All fields are required.");
+      return;
+    }
+
+    if (!passwordValid(password)) {
+      showMessage("error", "Password must be at least 6 characters and include at least 1 letter and 1 number.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      showMessage("error", "Passwords do not match.");
+      return;
+    }
+
+    const payload = { username, password, email, firstName, lastName, imageUrl };
+
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showMessage("error", data.error || "Register failed.");
+        return;
+      }
+
+      showMessage("ok", "Registered successfully! Redirecting to login...");
+      setTimeout(() => window.location.href = "login.html", 900);
+
+    } catch (err) {
+      showMessage("error", "Server error. Make sure Node server is running on http://localhost:3000");
+    }
+  });
+</script>
+
+</body>
+</html>

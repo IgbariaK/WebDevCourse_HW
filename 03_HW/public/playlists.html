@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Playlists</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      color: #111;
+    }
+
+    header {
+      background: #222;
+      color: #fff;
+      padding: 15px;
+    }
+
+    nav a {
+      color: #fff;
+      text-decoration: none;
+      margin-right: 14px;
+      font-weight: bold;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 16px;
+      padding: 16px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .sidebar, .main {
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 6px 16px rgba(0,0,0,.08);
+    }
+
+    h2, h3 {
+      margin-top: 0;
+    }
+
+    .playlistItem {
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 6px;
+    }
+
+    .playlistItem.active {
+      background: #eef2ff;
+      font-weight: bold;
+    }
+
+    .playlistItem:hover {
+      background: #f3f3f3;
+    }
+
+    button {
+      padding: 8px 12px;
+      border: 0;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #2d5bff;
+      color: #fff;
+      font-weight: bold;
+    }
+
+    button.secondary {
+      background: #eee;
+      color: #111;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    input, select {
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .video {
+      display: flex;
+      gap: 12px;
+      border: 1px solid #eee;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      background: #fff;
+    }
+
+    .video img {
+      width: 160px;
+      height: 90px;
+      border-radius: 8px;
+      cursor: pointer;
+      object-fit: cover;
+    }
+
+    .videoTitle {
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .videoMeta {
+      font-size: 0.9rem;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    .videoActions {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .empty {
+      color: #666;
+      font-style: italic;
+    }
+
+    /* Modal */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px;
+      width: min(900px, 95%);
+    }
+
+    iframe {
+      width: 100%;
+      aspect-ratio: 16/9;
+      border: 0;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="search.html">Search</a>
+    <a href="playlists.html">Playlists</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h3>MY PLAYLISTS</h3>
+    <button id="btnNewPlaylist">+ New Playlist</button>
+
+    <div style="margin-top:12px;">
+      <strong>PLAYLIST</strong>
+      <div id="playlistList"></div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <h2 id="playlistTitle">Select a playlist</h2>
+
+    <div class="controls">
+      <input id="filterInput" placeholder="Search video by name" />
+      <select id="sortSelect">
+        <option value="az">Sort A-Z</option>
+        <option value="za">Sort Z-A</option>
+        <option value="views">Sort by views</option>
+      </select>
+      <button id="btnDeletePlaylist" class="secondary">Delete Playlist</button>
+    </div>
+
+    <div id="videos"></div>
+  </div>
+</div>
+
+<!-- Player Modal -->
+<div id="overlay" class="overlay">
+  <div class="modal">
+    <button onclick="closePlayer()">Close</button>
+    <iframe id="player"></iframe>
+  </div>
+</div>
+
+<script>
+  // ----- Auth -----
+  const currentUser = JSON.parse(sessionStorage.getItem("currentUser") || "null");
+  if (!currentUser) location.href = "login.html";
+
+  const STORAGE_KEY = "playlists_" + currentUser.username;
+
+  function getPlaylists() {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  }
+
+  function savePlaylists(p) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
+  }
+
+  function getParam(name) {
+    return new URL(location.href).searchParams.get(name);
+  }
+
+  function setParam(name, value) {
+    const u = new URL(location.href);
+    u.searchParams.set(name, value);
+    history.replaceState({}, "", u);
+  }
+
+  let playlists = getPlaylists();
+  let selected = getParam("p");
+
+  if (!selected && playlists[0]) {
+    selected = playlists[0].name;
+    setParam("p", selected);
+  }
+
+  function renderSidebar() {
+    const list = document.getElementById("playlistList");
+    list.innerHTML = "";
+
+    playlists.forEach(p => {
+      const d = document.createElement("div");
+      d.className = "playlistItem" + (p.name === selected ? " active" : "");
+      d.textContent = p.name;
+      d.onclick = () => {
+        selected = p.name;
+        setParam("p", selected);
+        render();
+      };
+      list.appendChild(d);
+    });
+  }
+
+  function renderVideos() {
+    const box = document.getElementById("videos");
+    box.innerHTML = "";
+
+    const playlist = playlists.find(p => p.name === selected);
+    if (!playlist) {
+      box.innerHTML = '<div class="empty">Select a playlist from the list</div>';
+      return;
+    }
+
+    document.getElementById("playlistTitle").textContent = playlist.name;
+
+    let vids = [...playlist.videos];
+    const filter = document.getElementById("filterInput").value.toLowerCase();
+
+    if (filter) vids = vids.filter(v => v.title.toLowerCase().includes(filter));
+
+    const sort = document.getElementById("sortSelect").value;
+    if (sort === "az") vids.sort((a,b)=>a.title.localeCompare(b.title));
+    if (sort === "za") vids.sort((a,b)=>b.title.localeCompare(a.title));
+    if (sort === "views") vids.sort((a,b)=>Number(b.views)-Number(a.views));
+
+    if (vids.length === 0) {
+      box.innerHTML = '<div class="empty">No videos in this playlist</div>';
+      return;
+    }
+
+    vids.forEach(v => {
+      const d = document.createElement("div");
+      d.className = "video";
+      d.innerHTML = `
+        <img src="${v.thumbnail}">
+        <div>
+          <div class="videoTitle">${v.title}</div>
+          <div class="videoMeta">
+            Channel: ${v.channelTitle}<br>
+            Views: ${Number(v.views).toLocaleString()}<br>
+            Duration: ${v.duration}
+          </div>
+          <div class="videoActions">
+            <button onclick="play('${v.videoId}')">Play</button>
+            <button class="secondary" onclick="removeVideo('${v.videoId}')">Remove</button>
+          </div>
+        </div>
+      `;
+      box.appendChild(d);
+    });
+  }
+
+  function render() {
+    playlists = getPlaylists();
+    renderSidebar();
+    renderVideos();
+  }
+
+  document.getElementById("btnNewPlaylist").onclick = () => {
+    const name = prompt("Enter new playlist name:");
+    if (!name) return;
+    playlists.push({ name, videos: [] });
+    savePlaylists(playlists);
+    selected = name;
+    setParam("p", name);
+    render();
+  };
+
+  document.getElementById("btnDeletePlaylist").onclick = () => {
+    if (!selected) return;
+    if (!confirm("Delete this playlist?")) return;
+    playlists = playlists.filter(p => p.name !== selected);
+    savePlaylists(playlists);
+    selected = playlists[0]?.name || "";
+    if (selected) setParam("p", selected);
+    render();
+  };
+
+  function removeVideo(id) {
+    const p = playlists.find(p => p.name === selected);
+    p.videos = p.videos.filter(v => v.videoId !== id);
+    savePlaylists(playlists);
+    renderVideos();
+  }
+
+  function play(id) {
+    document.getElementById("player").src =
+      "https://www.youtube.com/embed/" + id + "?autoplay=1";
+    document.getElementById("overlay").style.display = "flex";
+  }
+
+  function closePlayer() {
+    document.getElementById("overlay").style.display = "none";
+    document.getElementById("player").src = "";
+  }
+
+  document.getElementById("filterInput").oninput = renderVideos;
+  document.getElementById("sortSelect").onchange = renderVideos;
+
+  render();
+</script>
+
+</body>
+</html>

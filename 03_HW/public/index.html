@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WEB - CLIENT | Home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+        }
+        header {
+            background-color: #222;
+            color: white;
+            padding: 15px;
+        }
+        nav a {
+            color: white;
+            margin-right: 15px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        main {
+            padding: 20px;
+        }
+        pre {
+            background: #111;
+            color: #00ffcc;
+            padding: 15px;
+            border-radius: 8px;
+            max-width: 400px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="login.html">Login</a>
+        <a href="register.html">Register</a>
+        <a href="search.html">Search</a>
+        <a href="playlists.html">Playlists</a>
+    </nav>
+</header>
+
+<main>
+    <h1>Home Page</h1>
+
+    <h2>Student Details (from JSON file)</h2>
+    <pre id="studentInfo">Loading...</pre>
+
+    <p>
+        GitHub Repository:
+        <a id="githubLink" href="#" target="_blank">Open Repository</a>
+    </p>
+</main>
+
+<script>
+    fetch("student.json")
+        .then(response => response.json())
+        .then(data => {
+            const student = {
+                name: data.name,
+                id: data.id
+            };
+
+            document.getElementById("studentInfo").textContent =
+                JSON.stringify(student, null, 2);
+
+            document.getElementById("githubLink").href = data.github;
+        })
+        .catch(error => {
+            document.getElementById("studentInfo").textContent =
+                "Error loading student.json (use Live Server)";
+        });
+</script>
+
+</body>
+</html>
